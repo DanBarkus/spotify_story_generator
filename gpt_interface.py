@@ -50,7 +50,7 @@ def get_spotify_token(client_id, client_secret):
 token = get_spotify_token(client_id, client_secret)
 
 # Set the playlist ID
-playlist_id = "6SjcKB4ve4Smz5oA9dWjmb"
+playlist_id = "2vWk4sRkPU4adhmGirW5OW"
 album_id = "4SZko61aMnmgvNhfhgTuD3"
 
 def get_playlist_tracks(playlist_id, token):
@@ -80,6 +80,10 @@ def get_playlist_tracks(playlist_id, token):
             track = item['track']
             track_id = track['id']
             track_name = track['name']
+            # Remove things like "Remastered" or "From X movie" from track titles
+            track_name = track_name.split(' -')[0]
+            # Remove featured artist blocks
+            track_name = track_name.split(' (feat')[0]
             track_ids.append(track_id)
             track_names.append(track_name)
         # Return list of track IDs
