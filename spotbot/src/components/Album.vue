@@ -45,10 +45,12 @@
   .album-name {
     font-size: 1.25rem;
     font-weight: bold;
+    text-align: start;
   }
   
   .artist-name {
     font-size: 1rem;
     color: #333;
+    text-align: start;
   }
   </style>

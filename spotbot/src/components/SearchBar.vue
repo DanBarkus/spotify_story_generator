@@ -1,7 +1,7 @@
 <template>
-    <div>
-        <input type="text" v-model="input" placeholder="Search a playlist or album" />
-        <button @click="search">Search</button>
+    <div id="search_holder">
+        <input type="text" v-model="input" placeholder="Search a playlist or album" class="search_bar"/>
+        <button @click="search" class="search_button"><i class="fa fa-search"></i></button>
     </div>
  </template>
 
@@ -62,3 +62,33 @@ export default {
     }
 }
 </script>
+
+<style scoped>
+
+#search_holder {
+    display: flex;
+    width: 60%;
+    margin: auto;
+}
+.search_bar{
+    border: 0;
+    font-size: 1.5rem;
+    outline: 0;
+    width: 100%;
+    padding: 0.8rem 1.6rem;
+    border-radius: 0.7rem;
+}
+
+.search_button {
+    width: 3.3rem;
+    height: 3.3rem;
+    margin: 0rem 1rem;
+    font-size: 1.5rem;
+    border-radius: 1.5rem;
+    border: 4px solid #f3ac45;
+    background-color: transparent;
+    outline: none;
+    color: #f3ac45;
+    cursor: pointer;
+}
+</style>

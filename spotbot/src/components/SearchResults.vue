@@ -45,14 +45,14 @@
 .album_holder {
     margin: auto;
     width: 60%;
-    background-color: lightgray;
+    background-color: #F4AC45;
     padding: 2rem;
     border-radius: 1rem;
     border-top-left-radius: 0rem;
 }
 
 #playlists_holder {
-    background-color: plum;
+    background-color: #DB514A;
 }
 
 #button_holder {
@@ -67,7 +67,7 @@
 
 .toggle_button {
     width: 7rem;
-    background-color: lightgrey;
+    background-color: #F4AC45;
     margin-left: -2rem;
     padding: 0.5rem;
     text-align: center;
@@ -77,7 +77,7 @@
 }
 
 #playlist_button {
-    background-color: plum;
+    background-color: #DB514A;
     margin-left: -1rem;
     z-index: 1;
 }

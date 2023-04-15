@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png">
+    <img class="logo" alt="Vue logo" src="../assets/logo.png">
     <SearchBar />
     <SearchResults />
   </div>
@@ -19,3 +19,10 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.logo {
+  width: 20rem;
+  padding: 2rem;
+}
+</style>
