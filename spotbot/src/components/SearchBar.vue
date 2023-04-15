@@ -25,7 +25,6 @@ export default {
                 .then(data => {
                     var raw_albums = data.albums.items;
                     var raw_playlists = data.playlists.items
-                    console.log(raw_playlists);
                     var albums = this.process_albums(raw_albums);
                     var playlists = this.process_playlists(raw_playlists);
                     this.emitter.emit("search-albums", albums);

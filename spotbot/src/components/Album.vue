@@ -28,12 +28,12 @@
   }
   
   .album-cover {
-    height: 8rem;
+    height: 6rem;
   }
 
   .album-cover img {
-    width: 8rem;
-    height: 8rem;
+    width: 6rem;
+    height: 6rem;
     margin-right: 1rem;
   }
   
