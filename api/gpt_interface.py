@@ -7,6 +7,8 @@ from dotenv import load_dotenv
 import base64
 import requests
 import json
+from flask import Flask, jsonify, request
+from flask_cors import CORS, cross_origin
 
 load_dotenv()
 
@@ -14,6 +16,8 @@ load_dotenv()
 client_id = os.getenv("SPOTIFY_CLIENT_ID")
 client_secret = os.getenv("SPOTIFY_CLIENT_SECRET")
 
+
+# Generate a new token when connecting
 def get_spotify_token(client_id, client_secret):
     # Set the Spotify API endpoint for retrieving an access token
     endpoint = "https://accounts.spotify.com/api/token"
@@ -50,7 +54,7 @@ def get_spotify_token(client_id, client_secret):
 token = get_spotify_token(client_id, client_secret)
 
 # Set the playlist ID
-playlist_id = "2vWk4sRkPU4adhmGirW5OW"
+playlist_id = "4Zs4LuGmHghwIDtbBNOGap"
 album_id = "4SZko61aMnmgvNhfhgTuD3"
 
 def get_playlist_tracks(playlist_id, token):
@@ -131,9 +135,28 @@ def get_album_tracks(album_id, token):
         print(f"Error: {response.content}")
         return None, None
 
+def search_spotify(query):
+    """Searches for playlists or albums on Spotify based on a given query string.
+
+    Args:
+        query (str): The query string to search for.
+
+    Returns:
+        dict: A dictionary containing the search results.
+    """
+    url = 'https://api.spotify.com/v1/search'
+    params = {'q': query, 'type': 'playlist,album'}
+    headers = {'Authorization': 'Bearer ' + token}
+    response = requests.get(url, params=params, headers=headers)
+
+    if response.status_code == 200:
+        return response.json()
+    else:
+        print('Error searching Spotify:', response.text)
+        return None
     
 # For playlists
-track_ids,track_names,playlist_title = get_playlist_tracks(playlist_id,token)
+# track_ids,track_names,playlist_title = get_playlist_tracks(playlist_id,token)
 
 # For Albums
 # track_ids,track_names,playlist_title = get_album_tracks(album_id,token)
@@ -178,12 +201,12 @@ def get_track_valences(track_ids, token):
         print(f"Error: {response.content}")
         return []
     
-valences = get_track_valences(track_ids, token)
-valences = "|".join(str(v) for v in valences)
-track_names = "|".join(str(t) for t in track_names)
+# valences = get_track_valences(track_ids, token)
+# valences = "|".join(str(v) for v in valences)
+# track_names = "|".join(str(t) for t in track_names)
 
-print(track_names)
-print(valences)
+# print(track_names)
+# print(valences)
 
 # -------------- GPT Section ------------------
 
@@ -211,12 +234,12 @@ def get_random_row(filename):
 
 speak = False
 
-completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=[
-    {"role": "system", "content": "I am going to give you a list of numbers between 0 and 1 where each of these numbers corresponds to a main character's fortune in a story at a given point in time. 0 is total misfortune and 1 is total fortune, the numbers are separated by the | character. Do not include the numbers in the output. I am also going to give you a list of titles that corresponds to the numbers, the titles are also separated by |. Do not mention the titles in the output"},
-    {"role": "user", "content": f"write me a detailed, fiction inspired by the phrase '{playlist_title}' where each chapter is loosely based on a title from the list of titles. Use each title and in order, don't mention the title in the body of the fiction. The sequence of numbers is {valences}. Use every value in order, do not mention the values in the output. The sequence of titles is {track_names}, use these as chapter titles"}])
-output = completion.choices[0].message.content
+# completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=[
+#     {"role": "system", "content": "I am going to give you a list of numbers between 0 and 1 where each of these numbers corresponds to a main character's fortune in a story at a given point in time. 0 is total misfortune and 1 is total fortune, the numbers are separated by the | character. Do not include the numbers in the output. I am also going to give you a list of titles that corresponds to the numbers, the titles are also separated by |. Do not mention the titles in the output"},
+#     {"role": "user", "content": f"write me a detailed, fiction inspired by the phrase '{playlist_title}' where each chapter is loosely based on a title from the list of titles. Use each title and in order, don't mention the title in the body of the fiction. Make sure that the chapters flow into each other. The sequence of numbers is {valences}. Use every value in order, do not mention the values in the output. The sequence of titles is {track_names}, use these as chapter titles"}])
+# output = completion.choices[0].message.content
 
-print(output)
+# print(output)
 
 if speak:
     client = texttospeech.TextToSpeechClient()
@@ -242,3 +265,20 @@ if speak:
         # Write the response to the output file.
         out.write(response.audio_content)
         print('Audio content written to file "output.mp3"')
+
+# ------------ API section -----------------
+
+app = Flask(__name__)
+CORS(app)
+
+@app.route('/search', methods=['GET'])
+@cross_origin()
+def search_spot():
+    search_string = request.args.get('q')
+    results = search_spotify(search_string)
+    response = jsonify(results)
+    return response
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5001)
+
