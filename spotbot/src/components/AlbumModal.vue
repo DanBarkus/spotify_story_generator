@@ -3,8 +3,8 @@
     <div class="modal-content" :style="{ backgroundColor: color }">
       <div class="modal-header">
         <img :src="album.cover" class="modal-cover" />
-        <h3 class="modal-title">{{ album.title }}</h3>
-        <p class="modal-artist">{{ album.artist }}</p>
+        <h3 class="modal-title" :style="{ color: text_color }">{{ album.title }}</h3>
+        <p class="modal-artist" :style="{ color: text_color }">{{ album.artist }}</p>
       </div>
       <div class="modal-body">
         <ul class="modal-songs">
@@ -25,7 +25,8 @@
         return {
             album: {},
             show: false,
-            color: ''
+            color: '',
+            text_color: ''
         }
     },
     methods: {
@@ -66,16 +67,38 @@
             callback(color);
         };
         img.src = imageUrl;
-    }
+    },
+    getTextColor(backgroundColor) {
+        // Convert the hex color to an RGB triplet
+        var color = backgroundColor.substring(4);
+        color = color.split(',');
+        color[2] = color[2].slice(0, -1)
+        console.log(color);
+        const r = parseInt(color[0]);
+        const g = parseInt(color[1]);
+        const b = parseInt(color[2]);
+        console.log(r,g,b);
 
+        // Calculate the relative luminance of the color
+        const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+
+        // Choose black or white text based on the luminance
+        console.log(luminance);
+        if (luminance > 0.5) {
+            return '#000000'; // black
+        } else {
+            return '#ffffff'; // white
+        }
+      }
     },
     mounted() {
         this.emitter.on("show-album", (msg) => {
             this.album = msg;
             this.getProminentColor(msg.cover, (nc) => {
                 this.color = nc;
+                this.text_color = this.getTextColor(this.color);
+                console.log(this.text_color);
             });
-            console.log(this.color);
         }),
         this.emitter.on("show-playlist", (msg) => {
             this.album = msg;
