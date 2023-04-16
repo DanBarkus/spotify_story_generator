@@ -119,6 +119,10 @@ def get_album_tracks(album_id, token):
         # Extract the album name
         album_name = album_data['name']
 
+        album_cover = album_data['images'][0]['url']
+
+        artist = album_data['artists'][0]['name']
+
         # Extract the list of track IDs
         track_ids = []
         track_names = []
@@ -129,7 +133,7 @@ def get_album_tracks(album_id, token):
             track_names.append(track_name)
 
         # Return the album name and list of track IDs
-        return track_ids,track_names,album_name
+        return track_ids,track_names,album_name,artist,album_cover
     else:
         # Print the error message
         print(f"Error: {response.content}")
@@ -276,6 +280,14 @@ CORS(app)
 def search_spot():
     search_string = request.args.get('q')
     results = search_spotify(search_string)
+    response = jsonify(results)
+    return response
+
+@app.route('/get_album', methods=['GET'])
+@cross_origin()
+def get_album():
+    album = request.args.get('album')
+    results = get_album_tracks(album, token)
     response = jsonify(results)
     return response
 

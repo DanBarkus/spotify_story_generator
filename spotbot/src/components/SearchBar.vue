@@ -43,6 +43,7 @@ export default {
                 new_album['name'] = album.name;
                 new_album['imageUrl'] = album.images[0].url;
                 new_album['artist'] = album.artists[0].name;
+                new_album['album_id'] = album.id;
                 albums.push(new_album);
             });
             return albums;

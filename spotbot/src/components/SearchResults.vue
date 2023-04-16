@@ -11,7 +11,7 @@
       <Album v-for="album in playlists" :key="album.id" :album="album" />
     </div>
     <div v-else id="albums_holder" class="album_holder">
-      <Album v-for="album in albums" :key="album.id" :album="album" />
+      <Album v-for="album in albums" :key="album.id" :album="album" @click="get_album(album.album_id)"/>
     </div>
 </template>
   
@@ -30,6 +30,26 @@
         this.emitter.on("search-playlists", (msg) => {
             this.playlists = msg;
         })
+    },
+    methods: {
+      get_album(album_id) {
+            const api_url = 'http://localhost:5001/get_album';
+            const query_params = { album: album_id };
+            fetch(api_url + '?' + new URLSearchParams(query_params), {mode: 'cors'})
+                .then(response => response.json())
+                .then(data => {
+                  var album = {};
+                  album.title = data[2];
+                  album.songs = data[1];
+                  album.artist = data[3];
+                  album.cover = data[4];
+                  this.emitter.emit('show-album', album);
+                  this.emitter.emit('show-modal', true);
+                })
+                .catch(error => {
+                    console.error('Error searching API:', error);
+                });
+        },
     },
     data() {
       return {
@@ -73,7 +93,7 @@
     text-align: center;
     border-top-left-radius: 1em;
     border-top-right-radius: 1em;
-    z-index: 5;
+    z-index: 2;
 }
 
 #playlist_button {
