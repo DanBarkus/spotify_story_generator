@@ -133,7 +133,7 @@ def get_album_tracks(album_id, token):
             track_names.append(track_name)
 
         # Return the album name and list of track IDs
-        return track_ids,track_names,album_name,artist,album_cover
+        return track_ids,track_names,album_name,artist,album_cover,album_id
     else:
         # Print the error message
         print(f"Error: {response.content}")
@@ -290,6 +290,22 @@ def get_album():
     results = get_album_tracks(album, token)
     response = jsonify(results)
     return response
+
+@app.route('/generate_album', methods=['GET'])
+@cross_origin()
+def generate_album():
+    album_id = request.args.get('album_id')
+    track_ids,track_names,playlist_title,artist,album_cover,id = get_album_tracks(album_id,token)
+    valences = get_track_valences(track_ids, token)
+    valences = "|".join(str(v) for v in valences)
+    track_names = "|".join(str(t) for t in track_names)
+    completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=[
+        {"role": "system", "content": "I am going to give you a list of numbers between 0 and 1 where each of these numbers corresponds to a main character's fortune in a story at a given point in time. 0 is total misfortune and 1 is total fortune, the numbers are separated by the | character. Do not include the numbers in the output. I am also going to give you a list of titles that corresponds to the numbers, the titles are also separated by |. Do not mention the titles in the output"},
+        {"role": "user", "content": f"write me a detailed, fiction inspired by the phrase '{playlist_title}' where each chapter is loosely based on a title from the list of titles. Use each title and in order, don't mention the title in the body of the fiction. Make sure that the chapters flow into each other. The sequence of numbers is {valences}. Use every value in order, do not mention the values in the output. The sequence of titles is {track_names}, use these as chapter titles"}])
+    output = completion.choices[0].message.content
+    response = jsonify(output)
+    return response
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)

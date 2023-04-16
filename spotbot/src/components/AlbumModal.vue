@@ -1,5 +1,6 @@
 <template>
-  <div class="modal" v-if="show">
+  <div class="modal-container" v-if="show">
+    <div class="modal-background" @click="close"></div>
     <div class="modal-content" :style="{ backgroundColor: color }">
       <div class="modal-header">
         <img :src="album.cover" class="modal-cover" />
@@ -8,11 +9,16 @@
       </div>
       <div class="modal-body">
         <ul class="modal-songs">
-          <li v-for="(song, index) in album.songs" :key="index">{{ song }}</li>
+          <li v-for="(song, index) in album.songs" :key="index">
+            <div>
+                {{ song }}
+                <div class="chapter"></div>
+            </div></li>
         </ul>
       </div>
       <div class="modal-footer">
         <button class="modal-close" @click="close">Close</button>
+        <button class="modal-generate" @click="generate">Generate</button>
       </div>
     </div>
   </div>
@@ -34,6 +40,19 @@
         this.emitter.emit("show-modal", false);
         this.show = false;
       },
+      generate() {
+        const api_url = 'http://localhost:5001/generate_album';
+            const query_params = { album_id: this.album.album_id };
+            fetch(api_url + '?' + new URLSearchParams(query_params), {mode: 'cors'})
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+
+                })
+                .catch(error => {
+                    console.error('Error searching API:', error);
+                });
+      },
       getProminentColor(imageUrl, callback) {
         const img = new Image();
         img.crossOrigin = 'Anonymous';
@@ -42,7 +61,7 @@
             canvas.width = this.width;
             canvas.height = this.height;
 
-            const ctx = canvas.getContext('2d');
+            const ctx = canvas.getContext('2d', {willReadFrequently: true});
             ctx.drawImage(this, 0, 0);
 
             const sampleSize = 4;
@@ -73,17 +92,14 @@
         var color = backgroundColor.substring(4);
         color = color.split(',');
         color[2] = color[2].slice(0, -1)
-        console.log(color);
         const r = parseInt(color[0]);
         const g = parseInt(color[1]);
         const b = parseInt(color[2]);
-        console.log(r,g,b);
 
         // Calculate the relative luminance of the color
         const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
 
         // Choose black or white text based on the luminance
-        console.log(luminance);
         if (luminance > 0.5) {
             return '#000000'; // black
         } else {
@@ -97,7 +113,6 @@
             this.getProminentColor(msg.cover, (nc) => {
                 this.color = nc;
                 this.text_color = this.getTextColor(this.color);
-                console.log(this.text_color);
             });
         }),
         this.emitter.on("show-playlist", (msg) => {
@@ -111,17 +126,25 @@
 </script>
 
 <style>
-.modal {
+.modal-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.modal-background {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
 }
 
 .modal-content {
@@ -129,6 +152,7 @@
   width: 500px;
   padding: 20px;
   border-radius: 10px;
+  z-index: 20;
 }
 
 .modal-header {
@@ -187,4 +211,16 @@
   font-size: 16px;
   cursor: pointer;
 }
+
+.modal-generate {
+  background-color: #1dba01;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  float: right;
+}
+
 </style>

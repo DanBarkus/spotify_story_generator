@@ -43,6 +43,7 @@
                   album.songs = data[1];
                   album.artist = data[3];
                   album.cover = data[4];
+                  album.album_id = data[5];
                   this.emitter.emit('show-album', album);
                   this.emitter.emit('show-modal', true);
                 })
