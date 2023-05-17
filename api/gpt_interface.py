@@ -83,12 +83,6 @@ def get_playlist_tracks(playlist_id, token):
             track = item['track']
             track_id = track['id']
             track_name = track['name']
-            print(track_name)
-            # Remove things like "Remastered" or "From X movie" from track titles
-            track_name = track_name.split(' -')[0]
-            # Remove featured artist blocks
-            track_name = track_name.split(' (feat')[0]
-            print(track_name)
             track_ids.append(track_id)
             track_names.append(track_name)
         # Return list of track IDs
