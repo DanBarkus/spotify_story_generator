@@ -8,11 +8,11 @@
         <p class="modal-artist" :style="{ color: text_color }">{{ album.artist }}</p>
       </div>
       <div class="modal-body">
-        <ul class="modal-songs">
+        <ul class="modal-songs" :class="{ modalStory: chapters.length > 0 }">
           <li v-for="(song, index) in album.songs" :key="index">
             <div>
                 {{ song }}
-                <div class="chapter"></div>
+                <div class="chapter">{{ chapters[index] }}</div>
             </div></li>
         </ul>
       </div>
@@ -32,7 +32,10 @@
             album: {},
             show: false,
             color: '',
-            text_color: ''
+            text_color: '',
+            streamedData: [],
+            isStreaming: false,
+            chapters: []
         }
     },
     methods: {
@@ -42,16 +45,38 @@
       },
       generate() {
         const api_url = 'http://localhost:5001/generate_album';
-            const query_params = { album_id: this.album.album_id };
-            fetch(api_url + '?' + new URLSearchParams(query_params), {mode: 'cors'})
-                .then(response => response.json())
-                .then(data => {
-                    console.log(data);
+          const query_params = { album_id: this.album.album_id };
+          this.isStreaming = true;
+          this.chapters = [];
+          fetch(api_url + '?' + new URLSearchParams(query_params), {mode: 'cors'})
+              .then(response => {
+              const reader = response.body.getReader();
+              const decoder = new TextDecoder();
+            
+              const read = () => {
+                return reader.read().then(({value, done}) => {
+                  if (done) {
+                    this.isStreaming=false;
+                    return;
+                  }
 
-                })
-                .catch(error => {
-                    console.error('Error searching API:', error);
+                  const chunk = decoder.decode(value, {stream: true});
+                  this.streamedData.push(chunk);
+                  console.log(chunk);
+                  this.chapters.push(chunk)
+
+                  return read();
                 });
+              };
+              return read();
+            })
+              .then(data => {
+                  console.log(data);
+
+              })
+              .catch(error => {
+                  console.error('Error searching API:', error);
+              });
       },
       getProminentColor(imageUrl, callback) {
         const img = new Image();
@@ -110,6 +135,7 @@
     mounted() {
         this.emitter.on("show-album", (msg) => {
             this.album = msg;
+            this.chapters = [];
             this.getProminentColor(msg.cover, (nc) => {
                 this.color = nc;
                 this.text_color = this.getTextColor(this.color);
@@ -193,11 +219,16 @@
   width: 50%;
 }
 
+.modalStory {
+  width: 80%;
+}
+
 .modal-songs li {
   font-size: 16px;
   color: #333;
   padding: 0.25em 0;
-  padding-left: 2em;
+  padding: 0.5em 1em;
+  padding-bottom: 0em;
   margin-bottom: -3px;
   border: darkgrey 3px solid;
 }
@@ -221,6 +252,10 @@
   font-size: 16px;
   cursor: pointer;
   float: right;
+}
+
+.chapter {
+  padding: 0.5em;
 }
 
 </style>

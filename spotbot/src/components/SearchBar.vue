@@ -1,6 +1,6 @@
 <template>
     <div id="search_holder">
-        <input type="text" v-model="input" placeholder="Search a playlist or album" class="search_bar"/>
+        <input @keyup.enter="search" type="text" v-model="input" placeholder="Search a playlist or album" class="search_bar"/>
         <button @click="search" class="search_button"><i class="fa fa-search"></i></button>
     </div>
  </template>
@@ -59,7 +59,7 @@ export default {
                 playlists.push(new_playlist);
             });
             return playlists;
-        }
+        },
     }
 }
 </script>
@@ -81,11 +81,11 @@ export default {
 }
 
 .search_button {
-    width: 3.3rem;
+    width: 3.8rem;
     height: 3.3rem;
     margin: 0rem 1rem;
     font-size: 1.5rem;
-    border-radius: 1.5rem;
+    border-radius: 1.7rem;
     border: 4px solid #f3ac45;
     background-color: transparent;
     outline: none;

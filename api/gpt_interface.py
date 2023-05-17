@@ -2,12 +2,11 @@ import os
 import csv
 import random
 import openai
-from google.cloud import texttospeech
 from dotenv import load_dotenv
 import base64
 import requests
 import json
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, Response
 from flask_cors import CORS, cross_origin
 
 load_dotenv()
@@ -84,10 +83,12 @@ def get_playlist_tracks(playlist_id, token):
             track = item['track']
             track_id = track['id']
             track_name = track['name']
+            print(track_name)
             # Remove things like "Remastered" or "From X movie" from track titles
             track_name = track_name.split(' -')[0]
             # Remove featured artist blocks
             track_name = track_name.split(' (feat')[0]
+            print(track_name)
             track_ids.append(track_id)
             track_names.append(track_name)
         # Return list of track IDs
@@ -205,75 +206,36 @@ def get_track_valences(track_ids, token):
         print(f"Error: {response.content}")
         return []
     
-# valences = get_track_valences(track_ids, token)
-# valences = "|".join(str(v) for v in valences)
-# track_names = "|".join(str(t) for t in track_names)
-
-# print(track_names)
-# print(valences)
-
 # -------------- GPT Section ------------------
 
 openai.organization = os.getenv("OPENAI_ORG")
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-def get_random_row(filename):
-    # Open the CSV file
-    with open(filename, 'r') as file:
-
-        # Create a CSV reader object
-        reader = csv.reader(file)
-
-        # Read all the rows into a list
-        rows = list(reader)
-
-        # Pick a random row
-        random_row = random.choice(rows)
-
-        # Get the text value of the selected row
-        random_text = random_row[0]
-
-        # Return the text value
-        return random_text
-
-speak = False
-
-# completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=[
-#     {"role": "system", "content": "I am going to give you a list of numbers between 0 and 1 where each of these numbers corresponds to a main character's fortune in a story at a given point in time. 0 is total misfortune and 1 is total fortune, the numbers are separated by the | character. Do not include the numbers in the output. I am also going to give you a list of titles that corresponds to the numbers, the titles are also separated by |. Do not mention the titles in the output"},
-#     {"role": "user", "content": f"write me a detailed, fiction inspired by the phrase '{playlist_title}' where each chapter is loosely based on a title from the list of titles. Use each title and in order, don't mention the title in the body of the fiction. Make sure that the chapters flow into each other. The sequence of numbers is {valences}. Use every value in order, do not mention the values in the output. The sequence of titles is {track_names}, use these as chapter titles"}])
-# output = completion.choices[0].message.content
-
-# print(output)
-
-if speak:
-    client = texttospeech.TextToSpeechClient()
-    synthesis_input = texttospeech.SynthesisInput(text=output)
-
-    voice = texttospeech.VoiceSelectionParams(
-        language_code="en-US", ssml_gender=texttospeech.SsmlVoiceGender.MALE, name="en-US-Neural2-I"
-    )
-
-    # Select the type of audio file you want returned
-    audio_config = texttospeech.AudioConfig(
-        audio_encoding=texttospeech.AudioEncoding.MP3, effects_profile_id=["small-bluetooth-speaker-class-device"]
-    )
-
-    # Perform the text-to-speech request on the text input with the selected
-    # voice parameters and audio file type
-    response = client.synthesize_speech(
-        input=synthesis_input, voice=voice, audio_config=audio_config
-    )
-
-    # The response's audio_content is binary.
-    with open(f"{mood}_story_about_a_{subject}_that_{action}.mp3", "wb") as out:
-        # Write the response to the output file.
-        out.write(response.audio_content)
-        print('Audio content written to file "output.mp3"')
-
 # ------------ API section -----------------
 
 app = Flask(__name__)
 CORS(app)
+
+def generate_story(playlist_title, track_names, valences):
+    num_tracks = len(track_names.split('|'))
+    print(track_names)
+    print(num_tracks)
+    messages = [
+        {"role": "system", "content": "I want you to write me a story broken into chapters, each chapter should be relevant to the chapters before it and only about 5 sentances long. I only want you to return one chapter at a time. When I say 'next' you will respond with the next chapter. I will provide the tile of the story and all of the chapters together should tell the story of that title. Each chapter should be related to the relevant chapter title from the list of chapters and also have the mood of the chapter driven by the corresponding mood number from the list of numbers. I am going to provide you with a list of chapter titles and a list of mood numbers. The first chapter title corresponds to the first chapter and the first mood number. The second chapter title to the second chapter and second mood number and so on. The mood numbers will range from 0 to 1 where 0 is a bad mood and 1 is a good mood. Do not include the input chapter title or mood number."},
+        {"role": "user", "content": f"The title of the story is {playlist_title}. The chapter titles are {track_names} and the mood numbers are {valences}. Please start the story after I prompt with 'next'."},
+        {"role": "user", "content": "next"}
+    ]
+    story = []
+    completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
+    for track in range(num_tracks):
+        output = completion.choices[0].message.content
+        yield output
+        story.append(output)
+        print(output)
+        tmp_message = {"role": "assistant", "content": output}
+        messages.append(tmp_message)
+        messages.append({"role": "user", "content": "next"})
+        completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
 
 @app.route('/search', methods=['GET'])
 @cross_origin()
@@ -298,14 +260,14 @@ def generate_album():
     track_ids,track_names,playlist_title,artist,album_cover,id = get_album_tracks(album_id,token)
     valences = get_track_valences(track_ids, token)
     valences = "|".join(str(v) for v in valences)
+    for idx, track_name in enumerate(track_names):
+            # Remove things like "Remastered" or "From X movie" from track titles
+            track_name = track_name.split(' -')[0]
+            # Remove featured artist blocks
+            track_name = track_name.split(' (feat')[0]
+            track_names[idx] = track_name
     track_names = "|".join(str(t) for t in track_names)
-    completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=[
-        {"role": "system", "content": "I am going to give you a list of numbers between 0 and 1 where each of these numbers corresponds to a main character's fortune in a story at a given point in time. 0 is total misfortune and 1 is total fortune, the numbers are separated by the | character. Do not include the numbers in the output. I am also going to give you a list of titles that corresponds to the numbers, the titles are also separated by |. Do not mention the titles in the output"},
-        {"role": "user", "content": f"write me a detailed, fiction inspired by the phrase '{playlist_title}' where each chapter is loosely based on a title from the list of titles. Use each title and in order, don't mention the title in the body of the fiction. Make sure that the chapters flow into each other. The sequence of numbers is {valences}. Use every value in order, do not mention the values in the output. The sequence of titles is {track_names}, use these as chapter titles"}])
-    output = completion.choices[0].message.content
-    response = jsonify(output)
-    return response
-
+    return Response(generate_story(playlist_title,track_names,valences), mimetype='text/plain')
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
