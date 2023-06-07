@@ -56,6 +56,7 @@ export default {
                 new_playlist['name'] = playlist.name;
                 new_playlist['imageUrl'] = playlist.images[0].url;
                 new_playlist['artist'] = playlist.owner.display_name;
+                new_playlist['playlist_id'] = playlist.id;
                 playlists.push(new_playlist);
             });
             return playlists;

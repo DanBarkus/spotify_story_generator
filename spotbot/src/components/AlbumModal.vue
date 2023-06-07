@@ -11,14 +11,15 @@
         <ul class="modal-songs" :class="{ modalStory: chapters.length > 0 }">
           <li v-for="(song, index) in album.songs" :key="index">
             <div>
-                {{ song }}
+                {{ song.name }}
+                <!-- {{ song.artists }} -->
                 <div class="chapter">{{ chapters[index] }}</div>
             </div></li>
         </ul>
       </div>
       <div class="modal-footer">
         <button class="modal-close" @click="close">Close</button>
-        <button class="modal-generate" @click="generate">Generate</button>
+        <button class="modal-generate" @click="generate(album.album_id, album.is_album)">Generate</button>
       </div>
     </div>
   </div>
@@ -43,9 +44,9 @@
         this.emitter.emit("show-modal", false);
         this.show = false;
       },
-      generate() {
+      generate(album_id, is_album) {
         const api_url = 'http://localhost:5001/generate_album';
-          const query_params = { album_id: this.album.album_id };
+          const query_params = { album_id: album_id, is_album: is_album };
           this.isStreaming = true;
           this.chapters = [];
           fetch(api_url + '?' + new URLSearchParams(query_params), {mode: 'cors'})

@@ -1,0 +1,23 @@
+{"system": "I am going to give you a list of numbers between 0 and 1 and a list of titles.
+    Both lists use the '|' character as a separator.
+    The first title in the title list corresponds to the first number in the number list, the second title to the second numver, and so on."
+},
+{"user": "write me a detailed, fiction inspired by the phrase '{playlist_title}' 
+    where each chapter is loosely based on a title from the list of titles.
+    Each chapter is also driven by the corresponding number from teh list of numbers
+    where 0 represents complete misfortune for the main character and 1 represents a fortunate outcome for them.
+    Use each title and in order, don't mention the title in the body of the fiction.
+    Make sure that the chapters flow into each other.
+    The sequence of numbers is {valences}. Use every value in order, do not mention the values in the output.
+    The sequence of titles is {track_names}, use these as chapter titles"
+}
+
+{"system": [
+    "I want you to write me a story broken into chapters, each chapter should be relevant to the chapters before it. I only want you to return one chapter at a time. When I say 'next' you will respond with the next chapter.",
+    "I will provide the tile of the story and all of the chapters together should tell the story of that title. Each chapter should be related to the relevant chapter title from the list of chapters and also have the mood of the chapter driven by the corresponding mood number from the list of numbers.",
+    "I am going to provide you with a list of chapter titles and a list of mood numbers. The first chapter title corresponds to the first chapter and the first mood number. The second chapter title to the second chapter and second mood number and so on. The mood numbers will range from 0 to 1 where 0 is a bad mood and 1 is a good mood."
+    ]
+},
+{"user": "The title of the story is {playlist_title}. The chapter titles are {track_names} and the mood numbers are {valences}. Please start the story."}
+
+{"role": "assistant", "content": "Adrian had been on edge since he got up that morning. He tried to shake off the anxious feelings, but they persisted as he made his way to work. As he sat in his cramped cubicle, he couldn\'t help but feel like something was wrong. It was as if his environment was warping around him, suffocating him in a way that he couldn\'t quite pinpoint. Despite his best efforts to push away the feeling, he felt his breath quicken as he gazed at the computer screen in front of him.\n\n(Chapter Title: Está Dañado, Mood: 0.164)"}

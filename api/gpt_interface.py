@@ -1,6 +1,4 @@
 import os
-import csv
-import random
 import openai
 from dotenv import load_dotenv
 import base64
@@ -52,10 +50,6 @@ def get_spotify_token(client_id, client_secret):
 # Set your API token
 token = get_spotify_token(client_id, client_secret)
 
-# Set the playlist ID
-playlist_id = "4Zs4LuGmHghwIDtbBNOGap"
-album_id = "4SZko61aMnmgvNhfhgTuD3"
-
 def get_playlist_tracks(playlist_id, token):
     # Set the Spotify API endpoint for retrieving a playlist by ID
     endpoint = f"https://api.spotify.com/v1/playlists/{playlist_id}"
@@ -75,18 +69,24 @@ def get_playlist_tracks(playlist_id, token):
         # Parse the response as JSON
         playlist_data = json.loads(response.content)
 
+        playlist_cover = playlist_data['images'][0]['url']
+
+        playlist_creator = playlist_data['owner']['display_name']
+
         # Extract track IDs from playlist data
-        track_ids = []
-        track_names = []
+        tracks = []
         playlist_title = playlist_data['name']
         for item in playlist_data['tracks']['items']:
             track = item['track']
-            track_id = track['id']
-            track_name = track['name']
-            track_ids.append(track_id)
-            track_names.append(track_name)
+            print(track)
+            n_track = {}
+            n_track['name'] = track['name']
+            n_track['id'] = track['id']
+            n_track['album'] = track['album']['name']
+            n_track['artists'] = track['artists'][0]['name']
+            tracks.append(n_track)
         # Return list of track IDs
-        return track_ids,track_names,playlist_title
+        return tracks,playlist_title,playlist_creator,playlist_cover,playlist_id
     else:
         # Print the error message
         print(f"Error: {response.content}")
@@ -119,16 +119,16 @@ def get_album_tracks(album_id, token):
         artist = album_data['artists'][0]['name']
 
         # Extract the list of track IDs
-        track_ids = []
-        track_names = []
+        tracks = []
         for track in album_data['tracks']['items']:
-            track_id = track['id']
-            track_name = track['name']
-            track_ids.append(track_id)
-            track_names.append(track_name)
+            n_track = {}
+            n_track['name'] = track['name']
+            n_track['id'] = track['id']
+            n_track['artists'] = track['artists']
+            tracks.append(n_track)
 
         # Return the album name and list of track IDs
-        return track_ids,track_names,album_name,artist,album_cover,album_id
+        return tracks,album_name,artist,album_cover,album_id
     else:
         # Print the error message
         print(f"Error: {response.content}")
@@ -247,11 +247,26 @@ def get_album():
     response = jsonify(results)
     return response
 
+@app.route('/get_playlist', methods=['GET'])
+@cross_origin()
+def get_playlist():
+    album = request.args.get('playlist')
+    results = get_playlist_tracks(album, token)
+    response = jsonify(results)
+    return response
+
 @app.route('/generate_album', methods=['GET'])
 @cross_origin()
 def generate_album():
     album_id = request.args.get('album_id')
-    track_ids,track_names,playlist_title,artist,album_cover,id = get_album_tracks(album_id,token)
+    is_album = request.args.get('album')
+    print(album_id)
+    if is_album:
+        tracks,playlist_title,artist,album_cover,id = get_album_tracks(album_id,token)
+    else:
+        tracks,playlist_title,artist,album_cover,id = get_playlist_tracks(album_id,token)
+    track_ids = [track['id'] for track in tracks]
+    track_names = [track['name'] for track in tracks]
     valences = get_track_valences(track_ids, token)
     valences = "|".join(str(v) for v in valences)
     for idx, track_name in enumerate(track_names):

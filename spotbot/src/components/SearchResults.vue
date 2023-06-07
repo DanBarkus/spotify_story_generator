@@ -8,7 +8,7 @@
         </div>
     </div>
     <div v-if="show_playlists" id="playlists_holder" class="album_holder">
-      <Album v-for="album in playlists" :key="album.id" :album="album" />
+      <Album v-for="album in playlists" :key="album.id" :album="album" @click="get_playlist(album.playlist_id)" />
     </div>
     <div v-else id="albums_holder" class="album_holder">
       <Album v-for="album in albums" :key="album.id" :album="album" @click="get_album(album.album_id)"/>
@@ -39,11 +39,33 @@
                 .then(response => response.json())
                 .then(data => {
                   var album = {};
-                  album.title = data[2];
-                  album.songs = data[1];
-                  album.artist = data[3];
-                  album.cover = data[4];
-                  album.album_id = data[5];
+                  album.title = data[1];
+                  album.songs = data[0];
+                  album.artist = data[2];
+                  album.cover = data[3];
+                  album.album_id = data[4];
+                  album.is_album = true;
+                  this.emitter.emit('show-album', album);
+                  this.emitter.emit('show-modal', true);
+                })
+                .catch(error => {
+                    console.error('Error searching API:', error);
+                });
+        },
+        get_playlist(album_id) {
+            const api_url = 'http://localhost:5001/get_playlist';
+            const query_params = { playlist: album_id };
+            fetch(api_url + '?' + new URLSearchParams(query_params), {mode: 'cors'})
+                .then(response => response.json())
+                .then(data => {
+                  console.log(data);
+                  var album = {};
+                  album.title = data[1];
+                  album.songs = data[0];
+                  album.artist = data[2];
+                  album.cover = data[3];
+                  album.album_id = data[4];
+                  album.is_album = false;
                   this.emitter.emit('show-album', album);
                   this.emitter.emit('show-modal', true);
                 })
