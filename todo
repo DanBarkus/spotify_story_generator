@@ -1,3 +1,16 @@
 - add donwload story button
     - should only appear when story is done
 - add story memory if album page gets closed
+- add provisions for large stories
+    - ratelimit
+    - token limit
+- persist stories if swapping between albums
+    - store stories with their album/playlist id
+- redo data storage
+    - album object
+        - track object
+            - title
+            - id
+            - artist
+            - image
+            - story

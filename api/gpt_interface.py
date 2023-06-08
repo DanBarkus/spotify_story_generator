@@ -78,7 +78,6 @@ def get_playlist_tracks(playlist_id, token):
         playlist_title = playlist_data['name']
         for item in playlist_data['tracks']['items']:
             track = item['track']
-            print(track)
             n_track = {}
             n_track['name'] = track['name']
             n_track['id'] = track['id']
@@ -250,7 +249,7 @@ def get_album():
 @app.route('/get_playlist', methods=['GET'])
 @cross_origin()
 def get_playlist():
-    album = request.args.get('playlist')
+    album = request.args.get('album')
     results = get_playlist_tracks(album, token)
     response = jsonify(results)
     return response
@@ -260,7 +259,6 @@ def get_playlist():
 def generate_album():
     album_id = request.args.get('album_id')
     is_album = request.args.get('album')
-    print(album_id)
     if is_album:
         tracks,playlist_title,artist,album_cover,id = get_album_tracks(album_id,token)
     else:

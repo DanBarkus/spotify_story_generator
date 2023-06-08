@@ -8,10 +8,10 @@
         </div>
     </div>
     <div v-if="show_playlists" id="playlists_holder" class="album_holder">
-      <Album v-for="album in playlists" :key="album.id" :album="album" @click="get_playlist(album.playlist_id)" />
+      <Album v-for="album in playlists" :key="album.id" :album="album" @click="get_album(album.playlist_id, false)" />
     </div>
     <div v-else id="albums_holder" class="album_holder">
-      <Album v-for="album in albums" :key="album.id" :album="album" @click="get_album(album.album_id)"/>
+      <Album v-for="album in albums" :key="album.id" :album="album" @click="get_album(album.album_id, true)"/>
     </div>
 </template>
   
@@ -32,8 +32,14 @@
         })
     },
     methods: {
-      get_album(album_id) {
-            const api_url = 'http://localhost:5001/get_album';
+      get_album(album_id, is_album) {
+            var api_url = ""
+            if(is_album) {
+              api_url = 'http://localhost:5001/get_album';
+            }
+            else {
+              api_url = 'http://localhost:5001/get_playlist';
+            }
             const query_params = { album: album_id };
             fetch(api_url + '?' + new URLSearchParams(query_params), {mode: 'cors'})
                 .then(response => response.json())
@@ -44,28 +50,7 @@
                   album.artist = data[2];
                   album.cover = data[3];
                   album.album_id = data[4];
-                  album.is_album = true;
-                  this.emitter.emit('show-album', album);
-                  this.emitter.emit('show-modal', true);
-                })
-                .catch(error => {
-                    console.error('Error searching API:', error);
-                });
-        },
-        get_playlist(album_id) {
-            const api_url = 'http://localhost:5001/get_playlist';
-            const query_params = { playlist: album_id };
-            fetch(api_url + '?' + new URLSearchParams(query_params), {mode: 'cors'})
-                .then(response => response.json())
-                .then(data => {
-                  console.log(data);
-                  var album = {};
-                  album.title = data[1];
-                  album.songs = data[0];
-                  album.artist = data[2];
-                  album.cover = data[3];
-                  album.album_id = data[4];
-                  album.is_album = false;
+                  album.is_album = is_album;
                   this.emitter.emit('show-album', album);
                   this.emitter.emit('show-modal', true);
                 })
