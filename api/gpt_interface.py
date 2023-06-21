@@ -134,14 +134,6 @@ def get_album_tracks(album_id, token):
         return None, None
 
 def search_spotify(query):
-    """Searches for playlists or albums on Spotify based on a given query string.
-
-    Args:
-        query (str): The query string to search for.
-
-    Returns:
-        dict: A dictionary containing the search results.
-    """
     url = 'https://api.spotify.com/v1/search'
     params = {'q': query, 'type': 'playlist,album'}
     headers = {'Authorization': 'Bearer ' + token}
@@ -152,12 +144,6 @@ def search_spotify(query):
     else:
         print('Error searching Spotify:', response.text)
         return None
-    
-# For playlists
-# track_ids,track_names,playlist_title = get_playlist_tracks(playlist_id,token)
-
-# For Albums
-# track_ids,track_names,playlist_title = get_album_tracks(album_id,token)
 
 def get_track_valences(track_ids, token):
     # Set the Spotify API endpoint for retrieving multiple tracks by ID
@@ -258,7 +244,7 @@ def get_playlist():
 @cross_origin()
 def generate_album():
     album_id = request.args.get('album_id')
-    is_album = request.args.get('album')
+    is_album = request.args.get('is_album')
     if is_album:
         tracks,playlist_title,artist,album_cover,id = get_album_tracks(album_id,token)
     else:

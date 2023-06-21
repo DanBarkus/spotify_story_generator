@@ -1,5 +1,3 @@
-- add donwload story button
-    - should only appear when story is done
 - add story memory if album page gets closed
 - add provisions for large stories
     - ratelimit
@@ -13,4 +11,4 @@
             - id
             - artist
             - image
-            - story
+            - story chapter
