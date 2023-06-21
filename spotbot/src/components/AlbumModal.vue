@@ -19,6 +19,7 @@
       </div>
       <div class="modal-footer">
         <button class="modal-close" @click="close">Close</button>
+        <button :disabled="isStreaming" class="download-story" @click="download(chapters,album.title)">Download Story</button>
         <button class="modal-generate" @click="generate(album.album_id, album.is_album)">Generate</button>
       </div>
     </div>
@@ -35,7 +36,7 @@
             color: '',
             text_color: '',
             streamedData: [],
-            isStreaming: false,
+            isStreaming: true,
             chapters: []
         }
     },
@@ -50,34 +51,47 @@
           this.isStreaming = true;
           this.chapters = [];
           fetch(api_url + '?' + new URLSearchParams(query_params), {mode: 'cors'})
-              .then(response => {
-              const reader = response.body.getReader();
-              const decoder = new TextDecoder();
-            
-              const read = () => {
-                return reader.read().then(({value, done}) => {
-                  if (done) {
-                    this.isStreaming=false;
-                    return;
-                  }
+          .then(response => {
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+          
+            const read = () => {
+              return reader.read().then(({value, done}) => {
+                if (done) {
+                  this.isStreaming=false;
+                  return;
+                }
 
-                  const chunk = decoder.decode(value, {stream: true});
-                  this.streamedData.push(chunk);
-                  console.log(chunk);
-                  this.chapters.push(chunk)
+                const chunk = decoder.decode(value, {stream: true});
+                this.streamedData.push(chunk);
+                console.log(chunk);
+                this.chapters.push(chunk)
 
-                  return read();
-                });
-              };
-              return read();
-            })
-              .then(data => {
-                  console.log(data);
+                return read();
+            });
+          };
+          return read();
+        })
+        .then(data => {
+            console.log(data);
+        })
+        .catch(error => {
+            console.error('Error searching API:', error);
+        });
+      },
+      download(chapters, storyName) {
+        const combinedString = chapters.join('\n\n');
+        const element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(combinedString));
+        element.setAttribute('download', storyName+'.txt');
 
-              })
-              .catch(error => {
-                  console.error('Error searching API:', error);
-              });
+        element.style.display = 'none';
+        document.body.appendChild(element);
+
+        element.click();
+
+        document.body.removeChild(element);
+
       },
       getProminentColor(imageUrl, callback) {
         const img = new Image();
@@ -244,6 +258,13 @@
   cursor: pointer;
 }
 
+.modal-footer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .modal-generate {
   background-color: #1dba01;
   color: #fff;
@@ -253,6 +274,22 @@
   font-size: 16px;
   cursor: pointer;
   float: right;
+}
+
+.download-story {
+  background-color: #0176ba;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 10px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.download-story:disabled {
+  background-color: rgba(216, 216, 216, 0.384);
+  color: grey;
+  cursor: not-allowed;
 }
 
 .chapter {
